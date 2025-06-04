@@ -1,0 +1,14 @@
+services:
+  app:
+    build: ./app
+    ports:
+      - "5001:5000"
+    env_file:
+      - .env
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
