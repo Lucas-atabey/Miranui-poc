@@ -1,0 +1,21 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker app image
+      run: cd app; docker build . --file Dockerfile --tag miranui-poc-app:$(date +%s)
+
+    - name: Build the Docker front image
+      run: cd frontend; docker build . --file Dockerfile --tag miranui-poc-frontend:$(date +%s)
