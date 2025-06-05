@@ -8,7 +8,15 @@ if ! command -v docker &> /dev/null; then
   sudo sh get-docker.sh
 fi
 
+# Installer Docker Compose (si nécessaire)
+if ! command -v docker-compose &> /dev/null; then
+  echo "Docker Compose non trouvé. Installation..."
+  sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+    -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
+
 # Construire et démarrer les containers
 cd ..
-docker-compose down || true
-docker-compose up -d --build
+sudo docker-compose down || true
+sudo docker-compose up -d --build

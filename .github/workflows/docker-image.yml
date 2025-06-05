@@ -14,8 +14,42 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Login to Ionos registery
+      run: docker login lucas-rex.cr.de-fra.ionos.com -u lucas-git-token -p ${{ secrets.IONOS_REGISTRY_KEY }}
+
     - name: Build the Docker app image
-      run: cd app; docker build . --file Dockerfile --tag miranui-poc-app:$(date +%s)
+      run: |
+        TIMESTAMP=$(date +%s)
+        cd app
+        docker build . --file Dockerfile --tag lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-app:$TIMESTAMP
+        docker push lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-app:$TIMESTAMP
 
     - name: Build the Docker front image
-      run: cd frontend; docker build . --file Dockerfile --tag miranui-poc-frontend:$(date +%s)
+      run: |
+        TIMESTAMP=$(date +%s)
+        cd frontend
+        docker build . --file Dockerfile --tag lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-frontend:$TIMESTAMP
+        docker push lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-frontend:$TIMESTAMP
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.IONOS_SSH_PRIVATE_KEY }}
+
+    - uses: actions/checkout@v4
+    - name: Copy files to Ionos VM
+      run: |
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./ \
+        ${{ secrets.IONOS_USER }}@${{ secrets.IONOS_HOST }}:/home/${{ secrets.IONOS_USER }}/app
+
+    - name: Remote deploy commands
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.IONOS_USER }}@${{ secrets.IONOS_HOST }} << 'EOF'
+          cd ~/app/deploy
+          bash setup.sh
+        EOF
