@@ -8,8 +8,8 @@ on:
 
 env:
   TF_VAR_ionos_token: ${{ secrets.IONOS_TOKEN }}
-  TF_VAR_access_key: ${{ secrets.S3_ACCESS_KEY }}
-  TF_VAR_secret_key: ${{ secrets.S3_SECRET_KEY }}
+  TF_VAR_access_key: ${{ secrets.OVH_BUCKET_ACCESS_KEY }}
+  TF_VAR_secret_key: ${{ secrets.OVH_BUCKET_SECRET_KEY }}
 
 jobs:
   terraform-plan:
@@ -24,8 +24,14 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: Terraform Init
-        run: terraform init
+      - name: Create tfvars file from secrets
+        run: |
+          echo "access_key=\"${{ secrets.OVH_BUCKET_ACCESS_KEY }}\"" > deploy/terraform/dev.tfbackend
+          echo "secret_key=\"${{ secrets.OVH_BUCKET_SECRET_KEY }}\"" >> deploy/terraform/dev.tfbackend
+
+      - name: Terraform Init apply
+        run: |
+          terraform init -backend-config=dev.tfbackend
         working-directory: deploy/terraform
 
       - name: Terraform Format Check
@@ -51,10 +57,17 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - run: terraform init
+      - name: Create tfvars file from secrets
+        run: |
+          echo "access_key=\"${{ secrets.OVH_BUCKET_ACCESS_KEY }}\"" > deploy/terraform/dev.tfbackend
+          echo "secret_key=\"${{ secrets.OVH_BUCKET_SECRET_KEY }}\"" >> deploy/terraform/dev.tfbackend
+
+      - name: Terraform Init apply
+        run: |
+          terraform init -backend-config=dev.tfbackend
         working-directory: deploy/terraform
 
-      - run: terraform apply -auto-approve tfplan
+      - run: terraform apply -auto-approve
         working-directory: deploy/terraform
 
   build:
