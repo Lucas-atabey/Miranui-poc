@@ -48,8 +48,8 @@ jobs:
 
   terraform-apply:
     runs-on: ubuntu-latest
+    environment: terraform_holder
     needs: terraform-plan
-    environment: production  # 🔐 Ce job attendra une validation manuelle via GitHub UI
     steps:
       - uses: actions/checkout@v4
 
@@ -74,28 +74,51 @@ jobs:
     needs: terraform-apply
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_BUILDKIT: 1
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Ionos registry
         run: docker login lucas-rex.cr.de-fra.ionos.com -u lucas-git-token -p ${{ secrets.IONOS_REGISTRY_KEY }}
 
-      - name: Build the Docker app image
-        run: |
-          TIMESTAMP=$(date +%s)
-          cd app
-          docker build . --file Dockerfile --tag lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-app:$TIMESTAMP
-          docker push lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-app:$TIMESTAMP
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
-      - name: Build the Docker front image
-        run: |
-          TIMESTAMP=$(date +%s)
-          cd frontend
-          docker build . --file Dockerfile --tag lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-frontend:$TIMESTAMP
-          docker push lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-frontend:$TIMESTAMP
+      - name: Build and push app image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: ./app/Dockerfile
+          push: true
+          tags: |
+            lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-app:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-frontend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
   deploy:
     needs: build
+    environment: production  # 🔐 Ce job attendra une validation manuelle via GitHub UI
     runs-on: ubuntu-latest
 
     steps:
@@ -112,6 +135,8 @@ jobs:
           echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
           echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
           echo "S3_BUCKET=${{ secrets.S3_BUCKET }}" >> .env
+          echo "AWS_REQUEST_CHECKSUM_CALCULATION=when_required" >> .env
+          echo "AWS_RESPONSE_CHECKSUM_VALIDATION=when_required" >> .env
 
       - name: Copy files to Ionos VM
         run: |
@@ -122,5 +147,6 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.IONOS_USER }}@${{ secrets.IONOS_HOST }} << 'EOF'
             cd ~/app/deploy
+            sudo docker login lucas-rex.cr.de-fra.ionos.com -u lucas-git-token -p ${{ secrets.IONOS_REGISTRY_KEY }}
             bash setup.sh
           EOF

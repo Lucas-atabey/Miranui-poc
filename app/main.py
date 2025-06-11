@@ -25,7 +25,9 @@ BUCKET = os.getenv("S3_BUCKET")
 
 @app.route("/", methods=["GET"])
 def hello_word():
-    return jsonify({"message": "Hello world"}), 200
+    result = [os.getenv("S3_BUCKET"), os.getenv("S3_ENDPOINT"), os.getenv("S3_ACCESS_KEY"), os.getenv("S3_SECRET_KEY")]
+    print(result)
+    return jsonify({"message": f"test os envs: {str(result)}"}), 200
 
 @app.route("/list", methods=["GET"])
 def list_buckets():

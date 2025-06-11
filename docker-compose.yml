@@ -1,14 +1,14 @@
 services:
   app:
-    build: ./app
+    image: lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-app:latest
     restart: unless-stopped
     ports:
       - "5001:5000"
-    env_file:
-      - .env
+    volumes:
+      - .env:/app/.env
 
   frontend:
-    build: ./frontend
+    image: lucas-rex.cr.de-fra.ionos.com/miranui/miranui-poc-frontend:latest
     restart: unless-stopped
     ports:
       - "3000:80"

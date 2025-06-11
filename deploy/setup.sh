@@ -18,5 +18,7 @@ fi
 
 # Construire et démarrer les containers
 cd ..
+
+sudo docker-compose pull
 sudo docker-compose down || true
-sudo docker-compose up -d --build
+sudo docker-compose up -d
