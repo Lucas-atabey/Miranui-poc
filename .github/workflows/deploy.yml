@@ -147,6 +147,5 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.IONOS_USER }}@${{ secrets.IONOS_HOST }} << 'EOF'
             cd ~/app/deploy
-            sudo docker login lucas-rex.cr.de-fra.ionos.com -u lucas-git-token -p ${{ secrets.IONOS_REGISTRY_KEY }}
-            bash setup.sh
+            bash setup.sh "${{ secrets.IONOS_REGISTRY_KEY }}"
           EOF

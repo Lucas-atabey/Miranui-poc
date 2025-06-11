@@ -24,7 +24,7 @@ function App() {
         console.log("FormData entry:", pair[0], pair[1])
         }
 
-        const resUpload = await axios.post('http://5.250.176.7:5001/upload', formData, {
+        const resUpload = await axios.post('http://87.106.123.32:5001/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -32,7 +32,7 @@ function App() {
 
         console.log("Réponse upload :", resUpload.status, resUpload.data)
 
-        const resDownload = await axios.get(`http://5.250.176.7:5001/download/${file.name}`)
+        const resDownload = await axios.get(`http://87.106.123.32:5001/download/${file.name}`)
         console.log("Réponse download :", resDownload.status, resDownload.data)
 
         setDownloadUrl(resDownload.data.url)

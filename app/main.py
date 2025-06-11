@@ -32,33 +32,22 @@ def hello_word():
 @app.route("/list", methods=["GET"])
 def list_buckets():
     response = s3_client.list_buckets()
-    result = ""
+    result = []
     for bucket in response['Buckets']:
         print(bucket['Name'])
-        result = bucket['Name']
-    return jsonify({"message": f"{result} is a bucket"}), 200
-
-@app.route("/upload", methods=["OPTIONS"])
-def options_upload():
-    print("oui")
-    return 'Oui', 200
+        result.append(bucket['Name'])
+    return jsonify({"message": f"{str(result)} is a bucket"}), 200
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    print("Upload route called 1")
     try:
-        print("Upload route called 2")
         if "file" not in request.files:
-            print("Upload route called 3")
             return jsonify({"error": "No file part"}), 400
 
-        print("Upload route called 4")
         file = request.files["file"]
-        print("Upload route called 5")
         filename = secure_filename(file.filename)
 
         s3_client.upload_fileobj(file, BUCKET, filename)
-        print("Upload route called 6")
         return jsonify({"message": f"{filename} uploaded"}), 200
     except ClientError as e:
         # Erreur liée à boto3
@@ -72,10 +61,11 @@ def upload():
 
 @app.route("/download/<filename>", methods=["GET"])
 def download(filename):
+    secureFilename = secure_filename(filename)
     try:
         url = s3_client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': BUCKET, 'Key': filename},
+            Params={'Bucket': BUCKET, 'Key': secureFilename},
             ExpiresIn=3600
         )
         return jsonify({"url": url}), 200

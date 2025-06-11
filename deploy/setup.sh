@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+REGISTRY_KEY="$1"
+
 # Installer Docker (si nécessaire)
 if ! command -v docker &> /dev/null; then
   echo "Docker non trouvé. Installation..."
@@ -15,6 +17,8 @@ if ! command -v docker-compose &> /dev/null; then
     -o /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
 fi
+
+sudo docker login lucas-rex.cr.de-fra.ionos.com -u lucas-git-token -p "$REGISTRY_KEY"
 
 # Construire et démarrer les containers
 cd ..

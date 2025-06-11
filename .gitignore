@@ -1,3 +1,4 @@
 .env
 terraform.tfvars
 .terraform*
+dev.tfbackend
