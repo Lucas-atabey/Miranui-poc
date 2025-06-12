@@ -31,13 +31,50 @@ resource "ionoscloud_datacenter" "main" {
   sec_auth_protection = false
 }
 
+resource "ionoscloud_lan" "mariadb" {
+  datacenter_id = ionoscloud_datacenter.main.id
+  public        = false
+  name          = "Lucas Lan Maria db"
+}
+
+locals {
+  # Une IP privée correcte
+  database_ip_cidr = "10.7.222.0/23"
+}
+
+resource "ionoscloud_mariadb_cluster" "example" {
+  mariadb_version = "10.11"
+  location        = "fr/par"
+  instances       = 1
+  cores           = 1
+  ram             = 4
+  storage_size    = 10
+  display_name    = "MariaDB_cluster"
+
+  connections {
+    datacenter_id = ionoscloud_datacenter.main.id
+    lan_id        = ionoscloud_lan.mariadb.id
+    cidr          = local.database_ip_cidr
+  }
+
+  credentials {
+    username = "username"
+    password = "username17@"
+  }
+
+  maintenance_window {
+    day_of_the_week = "Sunday"
+    time            = "09:00:00"
+  }
+}
+
 resource "ionoscloud_ipblock" "example" {
   location = ionoscloud_datacenter.main.location
   size     = 1
-  name     = "Lucas private IP"
+  name     = "Lucas static IP"
 }
 
-resource "ionoscloud_lan" "example" {
+resource "ionoscloud_lan" "public" {
   datacenter_id = ionoscloud_datacenter.main.id
   public        = true
   name          = "Lucas Lan"
@@ -54,14 +91,23 @@ resource "ionoscloud_server" "example" {
   cpu_family          = "INTEL_ICELAKE"
 }
 
-resource "ionoscloud_nic" "example" {
+resource "ionoscloud_nic" "public" {
   datacenter_id   = ionoscloud_datacenter.main.id
   server_id       = ionoscloud_server.example.id
-  lan             = ionoscloud_lan.example.id
-  name            = "Lucas NIC"
+  lan             = ionoscloud_lan.public.id
+  name            = "Lucas NIC public"
   dhcp            = true
   firewall_active = false
   ips             = [ionoscloud_ipblock.example.ips[0]]
+}
+
+resource "ionoscloud_nic" "private" {
+  datacenter_id   = ionoscloud_datacenter.main.id
+  server_id       = ionoscloud_server.example.id
+  lan             = ionoscloud_lan.mariadb.id
+  name            = "Lucas Private NIC"
+  dhcp            = true
+  firewall_active = false
 }
 
 data "ionoscloud_image" "example" {
