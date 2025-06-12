@@ -2,3 +2,7 @@ flask
 boto3
 python-dotenv
 Flask-Cors
+flask_sqlalchemy
+flask-bcrypt
+flask-jwt-extended
+pymysql
