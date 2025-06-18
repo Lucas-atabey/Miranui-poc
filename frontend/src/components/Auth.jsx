@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://87.106.123.177:5001';
+const API_BASE = 'http://5.250.176.204:5001';
 
 export default function Auth({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
@@ -34,7 +34,7 @@ export default function Auth({ onLogin }) {
         />
         <input
           type="password"
-          placeholder="Mot de passe"
+          placeholder="Mot de passes"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

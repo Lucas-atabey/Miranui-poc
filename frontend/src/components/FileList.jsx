@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://87.106.123.177:5001';
+const API_BASE = 'http://5.250.176.204:5001';
 
 export default function FilesList({ token, refresh }) {
   const [files, setFiles] = useState([]);

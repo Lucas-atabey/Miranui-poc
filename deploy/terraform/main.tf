@@ -21,7 +21,9 @@ terraform {
 
 
 provider "ionoscloud" {
-  token = var.ionos_token
+  token         = var.ionos_token
+  s3_access_key = var.ionos_s3_access_key
+  s3_secret_key = var.ionos_s3_secret_key
 }
 
 resource "ionoscloud_datacenter" "main" {
@@ -39,7 +41,7 @@ resource "ionoscloud_lan" "mariadb" {
 
 locals {
   # Une IP privée correcte
-  database_ip_cidr = "10.7.222.0/23"
+  database_ip_cidr = "10.7.222.11/23"
 }
 
 resource "ionoscloud_mariadb_cluster" "example" {
@@ -138,6 +140,6 @@ resource "ionoscloud_container_registry" "example" {
   location = "de/fra"
   name     = "lucas-rex"
   features {
-    vulnerability_scanning = false
+    vulnerability_scanning = true
   }
 }

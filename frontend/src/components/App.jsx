@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import FilesList from './FileList';
 
-const API_BASE = 'http://87.106.123.177:5001';
+const API_BASE = 'http://5.250.176.204:5001';
 
 export default function App({ token, onLogout }) {
   const [file, setFile] = useState(null);
